@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  validator:
+    image: thebes1618/vericore:latest
+    container_name: vericore-validator
+    restart: unless-stopped
+    mem_reservation: "6g"
+    mem_limit:       "8g"
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
+      - ~/.bittensor/wallets:/root/.bittensor/wallets:ro
+    command: ["-vv", "validator"]
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: vericore-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30 vericore-validator
