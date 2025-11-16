@@ -13,18 +13,19 @@ from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 from vericore_agent import Container
+from services import verifier_service, bittensor_service
 
 logger = logging.getLogger("neurons")
 
-NETUID = int(os.getenv('NETUID', '2'))
+NETUID = int(os.getenv('NETUID', '70'))
 logger.debug(f"Using NETUID: {NETUID}")
 
 # ---------------- Subtensor ----------------
 SUBTENSOR = None
-async def get_subtensor():
+async def get_subtensor(endpoint: Optional[str] = None):
     global SUBTENSOR
     if SUBTENSOR is None:
-        subtensor_endpoint = os.getenv('SUBTENSOR_ENDPOINT', 'ws://127.0.0.1:9944')
+        subtensor_endpoint = endpoint or os.getenv('SUBTENSOR_ENDPOINT', 'ws://127.0.0.1:9944')
         logger.debug(f"Making Bittensor connection...: {subtensor_endpoint}")
         if bt is None:
             raise RuntimeError("bittensor not installed")
@@ -38,7 +39,7 @@ async def get_subtensor():
 
 
 # ---------------- Get Agent. ----------------
-async def pull_agent(uid: int) -> Optional[str]:
+async def pull_agent(uid: int, netuid: int = NETUID) -> Optional[str]:
     """
     Pulls agent code from blockchain commitment (gist URL) and downloads all files.
     Returns the directory path where files were saved.
@@ -46,7 +47,7 @@ async def pull_agent(uid: int) -> Optional[str]:
     try:
         logger.info(f"Starting to pull agent for uid: {uid}")
         sub = await get_subtensor()
-        commit = await sub.get_revealed_commitment(netuid=NETUID, uid=uid)
+        commit = await sub.get_revealed_commitment(netuid=netuid, uid=uid)
         g = commit[0][1]
         block = commit[0][0]
         if g.startswith("http") and "api.github.com" not in g:
@@ -163,7 +164,9 @@ def cli(log_level: Optional[str]):
 @click.option("--wallet-coldkey", envvar="BT_WALLET_COLD", help="Bittensor coldkey wallet name")
 @click.option("--wallet-hotkey", envvar="BT_WALLET_HOT", help="Bittensor hotkey wallet name")
 @click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub token for creating gists")
-def push(file_path: str, wallet_coldkey: Optional[str], wallet_hotkey: Optional[str], github_token: Optional[str]):
+@click.option("--netuid", default=70, type=int, help="NetUID for the subnet")
+@click.option("--chain-endpoint", help="Chain endpoint URL")
+def push(file_path: str, wallet_coldkey: Optional[str], wallet_hotkey: Optional[str], github_token: Optional[str], netuid: int = 70, chain_endpoint: Optional[str] = None):
     def require_value(name: str, value: Optional[str], env_name: str) -> str:
         if value:
             return value
@@ -176,13 +179,14 @@ def push(file_path: str, wallet_coldkey: Optional[str], wallet_hotkey: Optional[
     hotkey = require_value("wallet_hotkey", wallet_hotkey, "BT_WALLET_HOT")
     github_token_val = require_value("github_token", github_token, "GITHUB_TOKEN")
     wallet = bt.wallet(name=coldkey, hotkey=hotkey)
+    bittensor_service.wallet = wallet
 
     async def main():
-        logger.info(f'Loading chain state for NETUID: {NETUID}...')
-        sub = await get_subtensor()
-        metagraph = await sub.metagraph(NETUID)
+        logger.info(f'Loading chain state for NETUID: {netuid}...')
+        sub = await get_subtensor(chain_endpoint)
+        metagraph = await sub.metagraph(netuid)
         if wallet.hotkey.ss58_address not in metagraph.hotkeys:
-            logger.info(f"Not registered, first register your wallet `btcli subnet register --netuid {NETUID} --wallet.name {coldkey} --hotkey {hotkey}`")
+            logger.info(f"Not registered, first register your wallet `btcli subnet register --netuid {netuid} --wallet.name {coldkey} --hotkey {hotkey}`")
             os._exit(1)
 
         # Build up the 'files' object with all files found in file_path
@@ -211,25 +215,26 @@ def push(file_path: str, wallet_coldkey: Optional[str], wallet_hotkey: Optional[
                 gist_url = (await resp.json())["html_url"]
                 logger.info(f"Created gist: {gist_url}")
 
-        logger.info(f"Committing gist URL to blockchain for wallet: {wallet.hotkey.ss58_address}...")
+        logger.info(f"Sending submission to verifier server for wallet: {wallet.hotkey.ss58_address}...")
 
-        await sub.set_reveal_commitment(wallet=wallet, netuid=NETUID, data=gist_url, blocks_until_reveal=1)
-        logger.info(f"Committed gist URL to blockchain.")
+        await verifier_service.send_submission(gist_url)
+        logger.info(f"Submission sent to verifier server.")
 
     asyncio.run(main())
 
 
 @cli.command("pull")
 @click.argument("uid", type=int, required=False)
-def pull(uid: int = None):
+@click.option("--netuid", default=70, type=int, help="NetUID for the subnet")
+def pull(uid: int = None, netuid: int = 70):
     if uid is not None:
-        asyncio.run(pull_agent(uid))
+        asyncio.run(pull_agent(uid, netuid))
     else:
         async def pull_all():
             sub = await get_subtensor()
-            metagraph = await sub.metagraph(NETUID)
+            metagraph = await sub.metagraph(netuid)
             for uid in metagraph.uids:
-                await pull_agent(int(uid))
+                await pull_agent(int(uid), netuid)
         asyncio.run(pull_all())
 
 

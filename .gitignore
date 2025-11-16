@@ -149,5 +149,6 @@ dmypy.json
 cython_debug/
 
 affine/models/
+agents/
 
 .idea/
