@@ -97,7 +97,7 @@ def run_docker_container(image_name: str, container_name: str, port: int):
     # Stop and remove existing container if it exists
     stop_and_remove_container(container_name)
     
-    # Resource limits as documented in Specifification
+    # Resource limits as documented in Specification
     # CPU: 8 cores maximum
     # RAM: 32GB maximum
     # GPU: 24GB VRAM (NVIDIA GPU with CUDA support) - optional, only if available
