@@ -24,7 +24,7 @@ class VerifierService:
 
     def __init__(self):
         """Initialize the verifier service."""
-        self.verifier_server_url = os.getenv('VERIFIER_SERVER_URL', 'http://localhost:8000')
+        self.verifier_server_url = os.getenv('VERIFIER_SERVER_URL', 'https://api.verifier.vericore.dfusion.ai')
 
     async def send_submission(self, gist_url: str):
         """
