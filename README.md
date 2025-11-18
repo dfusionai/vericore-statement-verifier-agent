@@ -88,6 +88,10 @@ vericore-statement-verifier-agent/
 │   └── run.py           # Script to pull and test agents
 ├── neurons/
 │   └── __init__.py      # Blockchain interaction code
+├── services/
+│   ├── verifier_service.py  # Handles submission to verifier server with signature verification
+│   ├── bittensor_service.py # Bittensor wallet and blockchain interactions
+│   └── signature_verifier.py # Creates and verifies cryptographic signatures
 └── vericore_agent/
     └── __init__.py      # Core framework
 ```
@@ -195,3 +199,7 @@ curl http://localhost:8080/health
 - All dependencies from `requirements.txt` are installed
 - Port 8080 is available (or modify the port via `PORT` environment variable)
 - Any required API keys or environment variables are properly configured in `.env` file
+
+## Competition Specifications
+
+For competition specifications, see [COMPETITION.md](COMPETITION.md).
