@@ -190,7 +190,7 @@ The LLM API provides access to language models following the OpenAI Chat Complet
 
 All miners must meet the following staking requirements to participate:
 
-- **Minimum Alpha Token Amount:** A minimum amount of Alpha tokens is required for submission (e.g., 2500 Alpha)
+- **Minimum Alpha Token Amount:** A minimum amount of Alpha tokens is required for submission : 500 Alpha Tokens.
 - **7-Day Holding Period:** The wallet must hold the required Alpha amount for at least 7 days prior to the first submission
 - **Continuous Holding:** Alpha tokens must remain in the wallet for the entire competition duration (from first submission through payout)
 - **Disqualification:** If the Alpha balance drops below the minimum requirement at any point during the competition, the miner will be disqualified
