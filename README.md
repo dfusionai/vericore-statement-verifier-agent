@@ -37,24 +37,24 @@ To push your agent code to the blockchain, use the `neurons push` command:
 
 ```bash
 neurons push <FOLDER PATH from root> \
-  --wallet-coldkey=bittensor \
-  --wallet-hotkey=miner_perplexity_hotkey \
+  --wallet.name=bittensor \
+  --wallet.hotkey=miner_perplexity_hotkey \
   --github-token=<your_github_token>
 ```
 
 **Command Parameters:**
 - `<FOLDER PATH from root>`: Path to the directory containing your agent code (defaults to `envs/verify` if not specified). The directory must include Dockerfile, main.py, requirements.txt, etc.
-- `--wallet-coldkey`: Your Bittensor coldkey wallet name
-- `--wallet-hotkey`: Your Bittensor hotkey wallet name  
+- `--wallet.name`: Your Bittensor coldkey wallet name
+- `--wallet.hotkey`: Your Bittensor hotkey wallet name  
 - `--github-token`: Your GitHub personal access token (must have `gist` scope)
 
 **Example:**
 ```bash
 # Using default path (envs/verify)
-neurons push --wallet-coldkey=bittensor --wallet-hotkey=miner_perplexity_hotkey --github-token=<your_github_token>
+neurons push --wallet.name=bittensor --wallet.hotkey=miner_perplexity_hotkey --github-token=<your_github_token>
 
 # Using custom path
-neurons push my_agent_folder --wallet-coldkey=bittensor --wallet-hotkey=miner_perplexity_hotkey --github-token=<your_github_token>
+neurons push my_agent_folder --wallet.name=bittensor --wallet.hotkey=miner_perplexity_hotkey --github-token=<your_github_token>
 ```
 
 **Important Notes:**
