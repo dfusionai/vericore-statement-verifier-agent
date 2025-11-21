@@ -14,9 +14,12 @@ Key features:
 import os
 import logging
 import requests
+import dotenv
 from .signature_verifier import SignatureVerifier
 
 logger = logging.getLogger("verifier_service")
+
+dotenv.load_dotenv()
 
 
 class VerifierService:
@@ -36,7 +39,7 @@ class VerifierService:
         Raises:
             HTTPException: If signature creation fails
         """
-        from services import bs as bittensor_service
+        from services import bittensor_service
         # Create signature verifier
         verifier = SignatureVerifier()
         logger.info(f"Wallet used: {bittensor_service.wallet}")
@@ -79,6 +82,14 @@ class VerifierService:
         except requests.exceptions.HTTPError as e:
             if response.status_code == 409:
                 logger.warning("Submission was too quick - rate limited")
+                return None
+            elif response.status_code == 400:
+                try:
+                    error_json = response.json()
+                    detail = error_json.get('detail', 'Unknown error')
+                    logger.error(f"Submission failed: {detail}")
+                except Exception:
+                    logger.error(f"Submission failed with 400 error: {e}")
                 return None
             else:
                 logger.error(f"Failed to submit to verifier server: {e}")

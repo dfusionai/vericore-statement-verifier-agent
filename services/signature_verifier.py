@@ -21,7 +21,7 @@ class SignatureVerifier:
 
     def __init__(self):
         """Initialize the signature verifier."""
-        from services import bs as bittensor_service
+        from services import bittensor_service
         self.bittensor_service = bittensor_service
 
 

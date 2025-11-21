@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
-from services import verifier_service, bs as bittensor_service
+from services import verifier_service, bittensor_service
 
 logger = logging.getLogger("neurons")
 
