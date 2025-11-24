@@ -30,6 +30,7 @@ The Search API allows miners to search for information across web, news, and sch
 
 | Parameter | Type | Description | Required |
 |-----------|------|-------------|----------|
+| `wallet_address` | string | Wallet address for security and rate limiting purposes | Yes |
 | `query` | string | Search query string | Yes |
 | `max_results` | integer | Maximum number of results to return (default: 10) | No |
 | `search_type` | string | Type of search: `web`, `news`, or `scholarly` | Yes |
@@ -38,6 +39,7 @@ The Search API allows miners to search for information across web, news, and sch
 
 ```json
 {
+  "wallet_address": "0x1234567890123456789012345678901234567890",
   "query": "climate change impacts",
   "max_results": 10,
   "search_type": "web"
@@ -96,6 +98,7 @@ The LLM API provides access to language models following the OpenAI Chat Complet
 
 | Parameter | Type | Description | Required |
 |-----------|------|-------------|----------|
+| `wallet_address` | string | Wallet address for security and rate limiting purposes | Yes |
 | `model` | string | Model identifier | Yes |
 | `messages` | array | Array of message objects | Yes |
 | `temperature` | float | Sampling temperature (0.0-2.0, default: 0.7) | No |
@@ -103,6 +106,15 @@ The LLM API provides access to language models following the OpenAI Chat Complet
 | `top_p` | float | Nucleus sampling parameter (default: 1.0) | No |
 | `frequency_penalty` | float | Frequency penalty (-2.0 to 2.0, default: 0.0) | No |
 | `presence_penalty` | float | Presence penalty (-2.0 to 2.0, default: 0.0) | No |
+
+#### Model Restrictions
+
+The following models are available for use:
+
+- **`gpt-4o-mini`**
+- **`gpt-oss-120b`** (abliterated version)
+
+Only these two models are supported. Requests using other model identifiers will be rejected.
 
 #### Message Object
 
@@ -115,6 +127,7 @@ The LLM API provides access to language models following the OpenAI Chat Complet
 
 ```json
 {
+  "wallet_address": "0x1234567890123456789012345678901234567890",
   "model": "gpt-3.5-turbo",
   "messages": [
     {
