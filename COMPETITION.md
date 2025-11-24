@@ -235,7 +235,7 @@ Upon submission, the system immediately performs the following validation steps:
 
 ### Important Notes
 
-- Ensure your GitHub Gist is publicly accessible
+- The GitHub Gist can be left private
 - The Gist must contain all necessary files (Dockerfile, main.py, requirements.txt, etc.)
 - Validation tests verify basic code execution; ensure your code is functional before submission
-- Submit the Gist URL to the statement verifier endpoint (not directly to GitHub)
+- Submit the Gist URL to the statement verifier endpoint
