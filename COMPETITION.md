@@ -2,11 +2,17 @@
 
 This document outlines the technical specifications and requirements for participating in the competition.
 
+**Prize:** 30,000 Alpha tokens to the winner
+
+**Technical Specifications:** See GitHub: https://github.com/dfusionai/vericore-statement-verifier-agent
+
 ## Table of Contents
 
 - [API Specifications](#api-specifications)
   - [Search API](#search-api)
   - [LLM API](#llm-api)
+  - [Miner Verification API](#miner-verification-api)
+- [Competition Scoring](#competition-scoring)
 - [Staking Requirements](#staking-requirements)
 - [Submission Process](#submission-process)
 
@@ -19,8 +25,9 @@ Miners have access to two internal APIs via the internal network: a Search API a
 ### Search API
 
 The Search API allows miners to search for information across web, news, and scholarly sources.
+The endpoint URL will be provided via an environment variable at runtime. The example endpoint below is for reference only - miners should use the environment variable in their implementation. Below is the expected request and response format.
 
-**Endpoint:** `http://search-api:8000/search`
+**Endpoint (Example):** `https://example-search-api:8000/search`
 
 **Method:** `POST`
 
@@ -87,8 +94,9 @@ The Search API allows miners to search for information across web, news, and sch
 ### LLM API
 
 The LLM API provides access to language models following the OpenAI Chat Completions API format.
+The endpoint URL will be provided via an environment variable at runtime. The example endpoint below is for reference only - miners should use the environment variable in their implementation. The request and response formats follow the OpenAI Chat Completions API specifications.
 
-**Endpoint:** `http://llm-api:8000/v1/chat/completions`
+**Endpoint (Example):** `http://example-llm-api:8000/v1/chat/completions`
 
 **Method:** `POST`
 
@@ -112,7 +120,7 @@ The LLM API provides access to language models following the OpenAI Chat Complet
 The following models are available for use:
 
 - **`gpt-4o-mini`**
-- **`gpt-oss-120b`** (abliterated version)
+- **`gpt-oss-20b`** (abliterated version)
 
 Only these two models are supported. Requests using other model identifiers will be rejected.
 
@@ -146,56 +154,152 @@ Only these two models are supported. Requests using other model identifiers will
 
 #### Response Format
 
+Response will be the same as the Open AI response dependent on the model provided.
+
+---
+
+### Miner Verification API
+
+The Miner Verification API is the endpoint that miners must implement to verify statements. Miners receive verification requests and must return structured responses with evidence and reasoning.
+
+**Endpoint:** `/verify`
+
+**Method:** `POST`
+
+**Content-Type:** `application/json`
+
+#### Request Parameters
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| `statement` | string | The statement to verify | Yes |
+| `statement_id` | string | Unique identifier for the statement | Yes |
+| `timeout_seconds` | integer | Maximum time allowed for processing (default: 300) | No |
+
+#### Request Example
+
+```json
+{
+  "statement": "The capital of France is Paris",
+  "statement_id": "stmt_1234567890",
+  "timeout_seconds": 300
+}
+```
+
+#### Response Format
+
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Unique identifier for the completion |
-| `object` | string | Object type (always "chat.completion") |
-| `created` | integer | Unix timestamp of creation |
-| `model` | string | Model identifier used |
-| `choices` | array | Array of completion choices |
-| `usage` | object | Token usage statistics |
+| `statement_id` | string | The statement ID from the request |
+| `overall_score` | float | Score from 0.0-1.0 where 0.0 = strongly refutes, 0.5 = neutral, 1.0 = strongly corroborates |
+| `overall_verdict` | string | One of: `"corroborates"`, `"refutes"`, or `"neutral"` |
+| `reasoning` | string | Detailed reasoning (100-500 words) |
+| `evidence` | array | Array of evidence items (1-10 sources) |
+| `response_metadata` | object | Metadata about the processing |
 
-#### Choice Object
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `index` | integer | Index of the choice |
-| `message` | object | Message object with role and content |
-| `finish_reason` | string | Reason for completion (e.g., "stop") |
-
-#### Usage Object
+#### Evidence Item Object
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `prompt_tokens` | integer | Number of tokens in the prompt |
-| `completion_tokens` | integer | Number of tokens in the completion |
-| `total_tokens` | integer | Total tokens used |
+| `source_url` | string | URL of the evidence source |
+| `extracted_text` | string | Extracted text from the source (max 500 chars) |
+| `relevance_score` | float | Relevance score from 0.0-1.0 |
+| `corroboration_score` | float | Corroboration score from 0.0-1.0 |
+| `timestamp_retrieved` | string | ISO8601 formatted timestamp when the evidence was retrieved |
+
+#### Response Metadata Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `processing_time_seconds` | float | Total processing time in seconds |
+| `search_queries_used` | integer | Number of search queries executed |
+| `llm_tokens_used` | integer | Total LLM tokens consumed |
 
 #### Response Example
 
 ```json
 {
-  "id": "chatcmpl-123",
-  "object": "chat.completion",
-  "created": 1677652288,
-  "model": "gpt-3.5-turbo",
-  "choices": [
+  "statement_id": "stmt_1234567890",
+  "overall_score": 0.9,
+  "overall_verdict": "corroborates",
+  "reasoning": "The statement 'The capital of France is Paris' is strongly corroborated by multiple authoritative sources. Paris has been the capital of France since 987 AD, when Hugh Capet became King of France and established his court in Paris. This fact is consistently documented across encyclopedias, government sources, and historical records. The city serves as the political, economic, and cultural center of France, housing the French government, the National Assembly, and the Senate. Multiple verification sources confirm this established fact without contradiction.",
+  "evidence": [
     {
-      "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "The capital of France is Paris."
-      },
-      "finish_reason": "stop"
+      "source_url": "https://example.com/france-capital",
+      "extracted_text": "Paris is the capital and most populous city of France. It has been the capital since the Middle Ages and serves as the country's political, economic, and cultural center.",
+      "relevance_score": 0.95,
+      "corroboration_score": 0.9,
+      "timestamp_retrieved": "2024-01-15T10:30:00Z"
     }
   ],
-  "usage": {
-    "prompt_tokens": 9,
-    "completion_tokens": 12,
-    "total_tokens": 21
+  "response_metadata": {
+    "processing_time_seconds": 12.5,
+    "search_queries_used": 3,
+    "llm_tokens_used": 1250
   }
 }
 ```
+
+---
+
+## Competition Scoring
+
+The competition scoring system evaluates miner performance based on accuracy, speed, and submission timing.
+
+### Competition Format
+
+- **Total Statements:** The competition consists of **20 statements** from a hidden test set that each miner must verify
+- **Score Aggregation:** Scores are calculated by adding up performance across all 20 statements
+- Each statement is evaluated independently, and the total score determines the final ranking
+
+
+### Scoring Criteria
+
+#### Primary Scoring: Accuracy
+
+The primary scoring criterion is **accuracy** - whether the miner's `overall_verdict` matches the correct answer for each statement.
+
+- **Correct Verdict:** Miners receive 1 point when their `overall_verdict` matches the expected answer for a statement
+- **Incorrect Verdict:** Miners receive 0 points for incorrect verdicts
+- **Total Score:** Points are summed across all 20 statements (maximum possible score: 20 points)
+- The verdict must be one of: `"corroborates"`, `"refutes"`, or `"neutral"`
+
+#### Tiebreaker 1: Processing Speed
+
+When multiple miners have the same total accuracy score (same number of correct verdicts), the tiebreaker is **processing speed** (faster is better).
+
+- Speed is measured by summing `response_metadata.processing_time_seconds` across all 20 statements
+- Lower total processing time (faster overall responses) ranks higher
+- Processing time must be within the `timeout_seconds` limit specified in each request
+
+#### Tiebreaker 2: Submission Time
+
+If miners are still tied after accuracy and speed, the final tiebreaker is **submission time** (earlier is better).
+
+- Submission time refers to when the miner's code was first successfully submitted to the competition
+- Earlier submissions rank higher
+- This encourages early participation and testing
+
+### Scoring Summary
+
+1. **Primary:** Total number of correct `overall_verdict` matches across all 20 statements (maximum: 20 points)
+2. **Tiebreaker 1:** Lower total `processing_time_seconds` summed across all 20 statements (faster overall responses)
+3. **Tiebreaker 2:** Earlier code submission timestamp
+
+### Example Scoring Scenario
+
+| Miner | Correct Statements | Total Score | Total Processing Time | Submission Time | Rank |
+|-------|-------------------|-------------|----------------------|-----------------|------|
+| Miner A | 18/20 | 18 | 210.0s | Day 1, 10:00 AM | 1st |
+| Miner B | 18/20 | 18 | 210.0s | Day 1, 11:00 AM | 2nd |
+| Miner C | 18/20 | 18 | 304.0s | Day 1, 9:00 AM | 3rd |
+| Miner D | 17/20 | 17 | 160.0s | Day 1, 8:00 AM | 4th |
+
+In this example:
+- Miners A, B, and C all have 18 correct statements, so they rank above Miner D (17 correct)
+- Miners A and B have the same total processing time (210.0s), so Miner A wins due to earlier submission
+- Miner C has slower total processing time (304.0s) than A and B, so ranks third
+- Miner D has the fastest total processing time but fewer correct statements, so ranks last
 
 ---
 
@@ -214,7 +318,13 @@ All miners must meet the following staking requirements to participate:
 
 ### Overview
 
-Miners submit their agent code by uploading it to a GitHub Gist and then submitting the Gist URL to the statement verifier endpoint. The system validates submissions and enforces a cooldown period between resubmissions.
+The submission process starts from **December 1st, 2025**.
+
+**Final submission deadline:** January 15th, 2025
+
+**Evaluations:** Ongoing throughout competition period
+
+Miners must build a containerized fact-verification system that processes statements from the test set. Miners submit their agent code by uploading it to a GitHub Gist and then submitting the Gist URL to the statement verifier endpoint. The system validates submissions and enforces a cooldown period between resubmissions.
 
 ### Submission Steps
 
@@ -239,3 +349,4 @@ Upon submission, the system immediately performs the following validation steps:
 - The Gist must contain all necessary files (Dockerfile, main.py, requirements.txt, etc.)
 - Validation tests verify basic code execution; ensure your code is functional before submission
 - Submit the Gist URL to the statement verifier endpoint
+- **Winning implementation subject to manual code inspection**
