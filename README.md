@@ -31,9 +31,9 @@ This installs the `vericore_agent` package and makes the `neurons` CLI command a
 
 ## Usage
 
-### Pushing Agent Code to Blockchain
+### Submitting Agent Code to Competition
 
-To push your agent code to the blockchain, use the `neurons push` command:
+To submit your agent code to the competition endpoint, use the `neurons push` command:
 
 ```bash
 neurons push <FOLDER PATH from root> \
@@ -58,7 +58,7 @@ neurons push my_agent_folder --wallet.name=bittensor --wallet.hotkey=miner_perpl
 ```
 
 **Important Notes:**
-- Your wallet must be registered on the subnet before pushing. If not registered, register first:
+- Your wallet must be registered on the subnet before submitting. If not registered, register first:
   ```bash
   btcli subnet register --netuid <netuid> --wallet.name <coldkey> --wallet.hotkey <hotkey>
   ```
@@ -97,20 +97,6 @@ vericore-statement-verifier-agent/
 ```
 
 ## Development
-
-### Testing Agents on the Blockchain
-
-You can test agents that are already deployed on the blockchain using the miner agent:
-
-```bash
-python miner_agent/run.py <uid>
-```
-
-This will:
-1. Pull agent code from blockchain for the specified UID
-2. Build Docker image from the pulled code
-3. Run the container
-4. Call the API endpoint with test statements
 
 ### Running the Miner Locally Without Docker
 
