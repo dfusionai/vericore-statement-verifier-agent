@@ -27,6 +27,8 @@ Miners have access to two internal APIs via the internal network: a Search API a
 The Search API allows miners to search for information across web, news, and scholarly sources.
 The endpoint URL will be provided via an environment variable at runtime. The example endpoint below is for reference only - miners should use the environment variable in their implementation. Below is the expected request and response format.
 
+**Environment Variable:** `SEARCH_API_URL`
+
 **Endpoint (Example):** `https://example-search-api:8000/search`
 
 **Method:** `POST`
@@ -95,6 +97,8 @@ The endpoint URL will be provided via an environment variable at runtime. The ex
 
 The LLM API provides access to language models following the OpenAI Chat Completions API format.
 The endpoint URL will be provided via an environment variable at runtime. The example endpoint below is for reference only - miners should use the environment variable in their implementation. The request and response formats follow the OpenAI Chat Completions API specifications.
+
+**Environment Variable:** `LLM_API_URL`
 
 **Endpoint (Example):** `http://example-llm-api:8000/v1/chat/completions`
 
