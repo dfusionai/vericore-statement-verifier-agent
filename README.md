@@ -188,4 +188,6 @@ curl http://localhost:8080/health
 
 ## Competition Specifications
 
-For competition specifications, see [COMPETITION.md](COMPETITION.md).
+For competition specifications, see [COMPETITION.md](COMPETITION.md). The statements used for competition 1 are available in [docs/competition-statements/competition_statements_1.md](docs/competition-statements/competition_statements_1.md).
+
+
